@@ -2,47 +2,46 @@ package com.example.motivationalapp.controller
 
 import android.util.Log
 import com.android.volley.Request
+import com.android.volley.Response
+import com.android.volley.VolleyError
 import com.android.volley.toolbox.JsonArrayRequest
 import com.example.motivationalapp.model.Quote
 import org.json.JSONArray
 import org.json.JSONException
-import javax.security.auth.callback.Callback
 
 class QuoteData {
+    //private lateinit var quoteArrayList: ArrayList<Quote>
+    private val quoteArrayList = ArrayList<Quote>()
 
-    lateinit var quoteArrayList : ArrayList<Quote>
+    //val movies = ArrayList<Movie>()
 
-
-    fun getQuotes(callback: QuoteListAsyncResponse)
-    {
+    fun getQuotes(callback: QuoteListAsyncResponse) {
         val url = "https://raw.githubusercontent.com/pdichone/UIUX-Android-Course/master/Quotes.json%20"
 
-        val quoteRequest = JsonArrayRequest(Request.Method.GET,url, {
-                response: JSONArray ->
+        val quoteRequest = JsonArrayRequest(Request.Method.GET, url, Response.Listener { response: JSONArray ->
             try {
 
-                for (i in 0 until response.length())
-                {
-                    var quoteObject = response.getJSONObject(i)
-                    var quote = Quote(quoteObject.getString("quote"),quoteObject.getString("name"))
+                (0 until response.length())
+                    .map { response.getJSONObject(it) }
+                    .mapTo(quoteArrayList) { Quote(it.getString("quote"), it.getString("name")) }
 
-                    quoteArrayList.add(quote)
-                }
 
-            }catch (e : JSONException){e.printStackTrace()}
+            } catch (e: JSONException) {
+                e.printStackTrace()
+            }
+            callback.processFinished(quoteArrayList) // very important
 
-            callback.processFinished(quoteArrayList)
+        }, Response.ErrorListener { _: VolleyError ->
+            try {
+                Log.d("Error", "Not working")
 
-        }, {
-                error -> try {
-
-            Log.e("not_working","nooo")
-        }catch (e : JSONException){
-            e.printStackTrace()
-        }
-
+            } catch (e: JSONException) {
+                e.printStackTrace()
+            }
         })
 
         AppController.instance!!.addToRequestQueue(quoteRequest)
+
+
     }
 }

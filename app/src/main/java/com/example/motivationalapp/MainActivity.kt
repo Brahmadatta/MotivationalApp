@@ -2,14 +2,11 @@ package com.example.motivationalapp
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import com.example.motivationalapp.controller.AppController
 import com.example.motivationalapp.controller.QuoteData
 import com.example.motivationalapp.controller.QuoteListAsyncResponse
 import com.example.motivationalapp.controller.QuoteViewPagerAdapter
 import com.example.motivationalapp.model.Quote
 import kotlinx.android.synthetic.main.activity_main.*
-import org.json.JSONArray
-import org.json.JSONException
 
 class MainActivity : AppCompatActivity() {
 
@@ -26,23 +23,29 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    fun getFragments() : ArrayList<QuotesFragment> {
-       lateinit var fragmentList : ArrayList<QuotesFragment>
+    private fun getFragments(): ArrayList<QuotesFragment> {
 
-        QuoteData().getQuotes(object : QuoteListAsyncResponse{
+        // lateinit var fragmentList: ArrayList<QuotesFragment> // will not work
+        val fragmentList = ArrayList<QuotesFragment>()
+        QuoteData().getQuotes(object : QuoteListAsyncResponse {
             override fun processFinished(quotes: ArrayList<Quote>) {
-                for (i in 0..quotes.size)
-                {
-                    var quoteFragment = QuotesFragment().newInstance(quotes[i].quote,
-                                                quotes[i].author)
-                    fragmentList.add(quoteFragment)
-                }
 
+
+                (0 until quotes.size).mapTo(fragmentList) {
+                    QuotesFragment.newInstance(
+                        quotes[it].quote,
+                        quotes[it].author
+                    )
+                }
                 quoteViewPagerAdapter.notifyDataSetChanged()
 
+
             }
+
         })
+
         return fragmentList
+
     }
 
 }
